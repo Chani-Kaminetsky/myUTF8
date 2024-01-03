@@ -40,7 +40,7 @@ int my_utf8_strlen(char *string){
         // Look for a leading byte, or a not following
         // byte (aka can't start with 10) but can start with 0 (like ascii)
         // or 110...
-        if ((((string[i] >> 7 == 0) && 0x0001) != 0) || (((string[i] >> 6) && 0x0001) != 0)){
+        if (((string[i] >> 7) & 0x1 == 0) || ((string[i] >> 6) & 0x0b11 != 0x10)){
             counter++;
         }
     }
@@ -51,7 +51,7 @@ int my_utf8_strlen(char *string){
 // Returns the UTF8 encoded character at the location specified.
 char *my_utf8_charat(char *string, int index){
     int completeLetters;
-
+    char *answer;
 
     for (int i = 0; string[i] != '\0'; i++){
         // If we haven't reached our goal yet, keep moving
@@ -80,7 +80,11 @@ char *my_utf8_charat(char *string, int index){
 
         // We have reached our goal index
         else if (completeLetters == (index)){
-            return string[i];
+            for (int j=i; (((string[j] >> 6) && 0x0001) != 0); j++){
+                *answer = string[j];
+                answer++;
+            }
+            return answer;
 
         } 
     }
@@ -122,26 +126,56 @@ int my_utf8_strcmp(char *string1, char *string2){
 
 // Two of my own:
 
-
 // Returns the amount of bytes in a character or word
-int byteCounter(char *string){
-    int byteCounter;
-    for (int i = 0; string[i] != '\0'; i++){
-        if (((string[i] >> 0x7 == 0) && 0x0001) != 0){
-           byteCounter += 1; 
+int byteCounter(char *string1, char *string2){
+    int byteCounter1;
+    int byteCounter2;
+
+    for (int i = 0; string1[i] != '\0'; i++){
+        if (((string1[i] >> 0x7 == 0) && 0x0001) != 0){
+           byteCounter1 += 1; 
         }
-        else if (((string[i] >> 0xD) && 0x110) == 0x110){
-           byteCounter += 2;  
+        else if (((string1[i] >> 0xD) && 0x110) == 0x110){
+           byteCounter1 += 2;  
         }
-        else if (((string[i] >> 0x14) && 0x1110) == 0x1110){
-           byteCounter += 3;  
+        else if (((string1[i] >> 0x14) && 0x1110) == 0x1110){
+           byteCounter1 += 3;  
         }
-        else if (((string[i] >> 0x1B) && 0x11110) == 0x11110){
-           byteCounter += 4;  
+        else if (((string1[i] >> 0x1B) && 0x11110) == 0x11110){
+           byteCounter1 += 4;  
         }
     }
 
-    return byteCounter;
+    for (int i = 0; string2[i] != '\0'; i++){
+        if (((string2[i] >> 0x7 == 0) && 0x0001) != 0){
+           byteCounter2 += 1; 
+        }
+        else if (((string2[i] >> 0xD) && 0x110) == 0x110){
+           byteCounter2 += 2;  
+        }
+        else if (((string2[i] >> 0x14) && 0x1110) == 0x1110){
+           byteCounter2 += 3;  
+        }
+        else if (((string2[i] >> 0x1B) && 0x11110) == 0x11110){
+           byteCounter2 += 4;  
+        }
+    }
+
+    if (byteCounter1 > byteCounter2){
+        printf("%d\n", byteCounter1);
+        printf("%d\n", byteCounter2);
+        return 1; // for string 1
+    }
+    else if (byteCounter2 > byteCounter1){
+        printf("%d\n", byteCounter1);
+        printf("%d\n", byteCounter2);
+        return 2; // for string 2
+    }
+    else{
+        printf("%d\n", byteCounter1);
+        printf("%d\n", byteCounter2);
+        return 0; // if they are equal in byte size
+    }
 }
 
 void main(){
@@ -170,10 +204,17 @@ void main(){
     printf("%d\n", my_utf8_strcmp(string1D, string2D));
 
     // Length
-    printf("Hello\n");
-    printf("%d\n", my_utf8_strlen("Hello"));
-    printf("%c\n", "\xC2\xA3");
-    printf("%d\n", my_utf8_strlen("\u00A3"));
-    //printf("%d\n", my_utf8_strlen(string2D));
-    
+    // printf("Hello\n");
+    // printf("%d\n", my_utf8_strlen("Hello"));
+    // printf("%s\n", "\xC2\xA3");
+    // printf("%d\n", my_utf8_strlen("\u00A3"));
+    char *lenStr = "אריה";
+    printf("%d\n", my_utf8_strlen(lenStr));
+
+    //
+    //char *stringCharat = "\u05D0\u05E8\u05D9\u05D4";
+    //printf("%X", *my_utf8_charat(stringCharat, 2));
+    char *string1E = "\u05D0\u05E8\u05D9\u05D4"; 
+    char *string2E = "\u05D0\u05E8\u05D9\u05D4";
+    printf("%d", byteCounter(string1E, string2E));
 }
