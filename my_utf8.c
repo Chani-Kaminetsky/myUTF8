@@ -7,18 +7,73 @@
 // Encoding a UTF8 string, taking as input an ASCII string, 
 // with UTF8 characters encoded using the “U+” notation, and returns a UTF8 encoded string.
 int my_utf8_encode(char *input, char *output){
+    int byteSize = 0;
+    int bitsNeeded = 0;
+    int outputTracker = 0;
 
-    // for (int i = 0; input[i] != '\0'; i++) {
-    //     unsigned char curChar = (unsigned char)input[i];
-    //     output[0] = (curChar >> 4) & 0xF;
-    //     output[1] = curChar & 0xF; 
-    //     output[2] = '\0';
+    
 
-    //     printf("Hexadecimal representation of input[%d]: %s\n", i, output);
+    for (int i = 0; input[i] != '\0'; i++) {
+        char holder = input[i];
 
-    // }
+        // Find its range
+        // 1 byte 0xxxxxxx
+        if ((0x0000 < (unsigned char)holder) && ((unsigned char)holder <= 0x007F)){
+            output[outputTracker] = ((unsigned char)holder);
+        }
+        // 2 bytes 110xxxxx	10xxxxxx
+        else if ((0x0080 <  (unsigned char)holder) && ((unsigned char)holder <= 0x07FF)){
+            // get the green and add the leading 110
+            output[outputTracker] = ((holder >> 6) | 0xC0);
+            // reassign holder
+            holder = input[i];
+            // get ready for the next byte
+            outputTracker += 1;
+            // get the red and add the leading 10
+            // isolate the right 6 bits
+            holder = (holder & 0x03F); 
+            // add the leading 10
+            holder = (holder & 0xBF);
+            // put it in the next spot
+            output[outputTracker] = holder;
+        }
 
-    // return 0;
+        // 3 bytes 1110xxxx 10xxxxxx 10xxxxxx
+        else if ((0x0800 <  (unsigned char)holder) && ((unsigned char)holder <= 0xFFFF)){
+            byteSize = 3;
+            bitsNeeded = 16;
+        }
+        // 4 bytes 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx
+        else if ((0x10000 <  (unsigned char)holder) && ((unsigned char)holder <= 0x10FFFF)){
+            byteSize = 4;
+            bitsNeeded = 21;
+        }
+
+        else{
+            // In
+            return -1;
+            printf("%d", byteSize);
+        }
+
+        //End the output
+        output[outputTracker]='\0';
+
+        for (int i = 0; output[i] != '\0'; i++){
+            printf("%X", output[i]);
+        }
+
+
+        // output[i] = 
+        
+        // output[0] = (curChar >> 4) & 0xF;
+        // output[1] = curChar & 0xF; 
+        // output[2] = '\0';
+
+        // printf("Hexadecimal representation of input[%d]: %s\n", i, output);
+
+    }
+
+    return 0;
 }
 
 
@@ -225,8 +280,9 @@ void main(){
 
     // Encode
     // char *input = "\u20AC";
-    // char *output = NULL;
+    // char *output;
     // my_utf8_encode(input, output);
+    // printf("%s", input);
     // printf("%s", output);
 
     // -------------------------------------------------
@@ -268,60 +324,60 @@ void main(){
     // printf("%d", byteCounter(string1E, string2E));
 }
 
-// Testing
-// ---------------------------------------------------------------------
+// // Testing
+// // ---------------------------------------------------------------------
 
-// Check Function
-int my_utf8_checkTest(unsigned char *string, int expected){
-    int actual = my_utf8_check(string);
-    printf("%s\n", string);
-    printf("%s:, expected=%d, actual=%d\n",
-            (expected == actual ? "PASSED" : "FAILED"),
-            expected, actual);
-}
+// // Check Function
+// int my_utf8_checkTest(unsigned char *string, int expected){
+//     int actual = my_utf8_check(string);
+//     printf("%s\n", string);
+//     printf("%s:, expected=%d, actual=%d\n",
+//             (expected == actual ? "PASSED" : "FAILED"),
+//             expected, actual);
+// }
 
-void my_utf8_checkTestAll() {
-    my_utf8_checkTest("\u00A3", 1);
-} 
+// void my_utf8_checkTestAll() {
+//     my_utf8_checkTest("\u00A3", 1);
+// } 
 
-// ---------------------------------------------------------------------
-// Str Len
-int my_utf8_strlenTest(unsigned char *string, int expected){
-    int actual = my_utf8_strlen(string);
-    printf("%s\n", string);
-    printf("%s:, expected=%d, actual=%d\n",
-            (expected == actual ? "PASSED" : "FAILED"),
-            expected, actual);
-}
+// // ---------------------------------------------------------------------
+// // Str Len
+// int my_utf8_strlenTest(unsigned char *string, int expected){
+//     int actual = my_utf8_strlen(string);
+//     printf("%s\n", string);
+//     printf("%s:, expected=%d, actual=%d\n",
+//             (expected == actual ? "PASSED" : "FAILED"),
+//             expected, actual);
+// }
 
-void my_utf8_strlenTestAll() {
-    my_utf8_strlenTest("\u00A3", 1);
-}
+// void my_utf8_strlenTestAll() {
+//     my_utf8_strlenTest("\u00A3", 1);
+// }
 
-// ---------------------------------------------------------------------
-// Charat
-int my_utf8_charatTest(unsigned char *string, int index, int expected){
-    int actual = *my_utf8_charat(string, index);
-    printf("%s\n", string);
-    printf("%s:, expected=%d, actual=%d\n",
-            (expected == actual ? "PASSED" : "FAILED"),
-            expected, actual);
-}
+// // ---------------------------------------------------------------------
+// // Charat
+// char *my_utf8_charatTest(unsigned char *string, int index, int expected){
+//     int actual = *my_utf8_charat(string, index);
+//     printf("%s\n", string);
+//     printf("%s:, expected=%d, actual=%d\n",
+//             (expected == actual ? "PASSED" : "FAILED"),
+//             expected, actual);
+// }
 
-void my_utf8_checkTestAll() {
-    my_utf8_charatTest("\u00A3", 0, ----------);
-}
+// void my_utf8_checkTestAll() {
+//     my_utf8_charatTest("\u00A3", 0, 1); //change the 1
+// }
 
-// ---------------------------------------------------------------------
-// Strcmp
-int my_utf8_strcmpTest(unsigned char *string1, unsigned char *string2, int expected){
-    int actual = my_utf8_strcmp(string1, string2);
-    printf("%s\n", string1, string2);
-    printf("%s:, expected=%d, actual=%d\n",
-            (expected == actual ? "PASSED" : "FAILED"),
-            expected, actual);
-}
+// // ---------------------------------------------------------------------
+// // Strcmp
+// int my_utf8_strcmpTest(unsigned char *string1, unsigned char *string2, int expected){
+//     int actual = my_utf8_strcmp(string1, string2);
+//     printf("%s\n", string1, string2);
+//     printf("%s:, expected=%d, actual=%d\n",
+//             (expected == actual ? "PASSED" : "FAILED"),
+//             expected, actual);
+// }
 
-void my_utf8_strcmpTestAll() {
-    my_utf8_strcmpTest("\u00A3", "\u00A3", 1);
-}
+// void my_utf8_strcmpTestAll() {
+//     my_utf8_strcmpTest("\u00A3", "\u00A3", 1);
+// }
