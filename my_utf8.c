@@ -130,93 +130,178 @@ int my_utf8_encode(char *input, char *output){
 // Takes a UTF8 encoded string, and returns a string, with ASCII 
 // representation where possible, and UTF8 character representation for non-ASCII characters.
 int my_utf8_decode(char *input, char *output){
+    int outputTracker = 0;
    for (int i = 0; input[i] != '\0'; i++) {
        char holder = input[i]; 
 
        // 1 Byte
        if ((holder & 0x80) == 0){
-            output = holder;
+            // ascii so it doesn't need \u
+            output[outputTracker] = holder;
+            // Signifying ending
+            outputTracker ++;
+            output[outputTracker] = '\0';
+            break;
        }
-
        // 2 Bytes
        if ((holder & 0xE0) == 0xC0){
+            // start with a \u
+            output[outputTracker] = 0x5C;
+            outputTracker ++;
+            output[outputTracker] = 0x75;
+            outputTracker ++;
+
             // get rid of the leading 110
             holder = (holder << 3);
-            output = holder;
+            // get the first 3 bits
+            holder = (holder >> 2);
+            output[outputTracker] = holder;
+            // align it all the way to the right
+            output[outputTracker] = (output[outputTracker] >> 4);
+            // Go to the next hex digit
+            outputTracker ++;
 
+            // add the next 2 green bits
+            // reassign holder
+            holder = input[0];
+            holder = (holder << 6);
+            output[outputTracker] = holder;
+            // make room for only two more bits
+            output[outputTracker] = (output[outputTracker] >> 2);
+            
+            // on to the next input location
             // get rid of the leading 10
             // reassign holder
-            holder = input[i];
+            holder = input[1];
             holder = (holder << 2);
+            holder = (holder >> 4);
 
             // add it to the output
             // first we need to make room
-            output = ((unsigned char)output << 3);
-            output = ((unsigned char)output | holder);
+            output[outputTracker] = (output[outputTracker] | holder);
+
+            // Go to the next hex digit
+            outputTracker ++;
+            // reassign holder
+            holder = input[1];
+            holder = (holder & 0x0F);
+            output[outputTracker] = holder; 
+
+            // Signifying ending
+            outputTracker ++;
+            output[outputTracker] = '\0';
+            break;
+
        }
 
        // 3 Bytes
        if ((holder & 0xF0) == 0xE0){
             // get rid of the leading 1110
-            holder = (holder << 4);
-            output = holder;
+            holder = (holder & 0x0F);
+            output[outputTracker] = holder;
 
+            // Go to the next hex digit
+            outputTracker ++;
             // get rid of the leading 10
             // reassign holder
-            holder = input[i];
+            holder = input[1];
             holder = (holder << 2);
+            holder = (holder >> 4);
+            output[outputTracker] = holder;
 
-            // add it to the output
-            // first we need to make room
-            output = ((unsigned char)output << 2);
-            output = ((unsigned char)output | holder);
-
+            // Go to the next hex digit
+            outputTracker ++;
             // get rid of the leading 10
             // reassign holder
-            holder = input[i];
+            holder = input[1];
+            holder = (holder & 0x3);
             holder = (holder << 2);
+            output[outputTracker] = holder; 
 
-            // add it to the output
-            // first we need to make room
-            output = ((unsigned char)output << 6);
-            output = ((unsigned char)output | holder);
+            // Take the next two bits from the next hex digit
+            holder = input[2];
+            // Get rid of leading 10
+            holder = (holder << 2); 
+            holder = (holder >> 4);
+            output[outputTracker] = (output[outputTracker] | holder); 
+
+            // Next hex of the unicode
+            outputTracker ++;
+
+            // reassign holder
+            holder = input[2];
+            holder = (holder & 0x0F);
+            output[outputTracker] = holder;
+
+            // Signifying ending
+            outputTracker ++;
+            output[outputTracker] = '\0';
+            break;
        }
 
        // 4 Bytes
        if ((holder & 0xF8) == 0xF0){
-            // get rid of the leading 11110
-            holder = (holder << 5);
-            output = holder;
+            // Purple
+            holder = (holder << 6);
+            holder = (holder >> 6);
+            holder = (holder << 2);
+            output[outputTracker] = holder;
 
+            // finish purple with blue
+            // go to the next hex in utf
+            holder = input[1];
+            holder = (holder << 2);
+            holder = (holder >> 6); 
+            output[outputTracker] = (output[outputTracker] | holder);
+
+            // finish blue
+            // reassign holder
+            holder = input[1];
+            holder = (holder & 0x0F);
+            // Next hex of the unicode
+            outputTracker ++; 
+            output[outputTracker] = holder;
+
+            // do green then red
+
+            // Go to the next hex digit
+            outputTracker ++;
             // get rid of the leading 10
             // reassign holder
-            holder = input[i];
+            holder = input[2];
             holder = (holder << 2);
+            holder = (holder >> 4);
+            output[outputTracker] = holder;
 
-            // add it to the output
-            // first we need to make room
-            output = ((unsigned char)output << 1);
-            output = ((unsigned char)output | holder);
-
+            // Go to the next hex digit
+            outputTracker ++;
             // get rid of the leading 10
             // reassign holder
-            holder = input[i];
+            holder = input[2];
+            holder = (holder & 0x3);
             holder = (holder << 2);
+            output[outputTracker] = holder; 
 
-            // add it to the output
-            // first we need to make room
-            output = ((unsigned char)output << 6);
-            output = ((unsigned char)output | holder);
+            // Take the next two bits from the next hex digit
+            holder = input[3];
+            // Get rid of leading 10
+            holder = (holder << 2); 
+            holder = (holder >> 4);
+            output[outputTracker] = (output[outputTracker] | holder); 
 
-            // get rid of the leading 10
+            // Next hex of the unicode
+            outputTracker ++;
+
             // reassign holder
-            holder = input[i];
-            holder = (holder << 2);
+            holder = input[3];
+            holder = (holder & 0x0F);
+            output[outputTracker] = holder;
 
-            // add it to the output
-            // first we need to make room
-            output = ((unsigned char)output << 6);
-            output = ((unsigned char)output | holder);
+            // Signifying ending
+            outputTracker ++;
+            output[outputTracker] = '\0';
+            break; 
+
        }
    }
    return 0;
