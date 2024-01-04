@@ -7,11 +7,7 @@
 // Encoding a UTF8 string, taking as input an ASCII string, 
 // with UTF8 characters encoded using the “U+” notation, and returns a UTF8 encoded string.
 int my_utf8_encode(char *input, char *output){
-    int byteSize = 0;
-    int bitsNeeded = 0;
     int outputTracker = 0;
-
-    
 
     for (int i = 0; input[i] != '\0'; i++) {
         char holder = input[i];
@@ -20,57 +16,112 @@ int my_utf8_encode(char *input, char *output){
         // 1 byte 0xxxxxxx
         if ((0x0000 < (unsigned char)holder) && ((unsigned char)holder <= 0x007F)){
             output[outputTracker] = ((unsigned char)holder);
+            // get ready for the next byte
+            outputTracker += 1;
         }
         // 2 bytes 110xxxxx	10xxxxxx
         else if ((0x0080 <  (unsigned char)holder) && ((unsigned char)holder <= 0x07FF)){
             // get the green and add the leading 110
             output[outputTracker] = ((holder >> 6) | 0xC0);
-            // reassign holder
-            holder = input[i];
+
             // get ready for the next byte
             outputTracker += 1;
+            // reassign holder
+            holder = input[i];
             // get the red and add the leading 10
             // isolate the right 6 bits
-            holder = (holder & 0x03F); 
+            holder = (holder & 0x3F); 
             // add the leading 10
-            holder = (holder & 0xBF);
+            holder = (holder | 0x80);
             // put it in the next spot
             output[outputTracker] = holder;
+
+            // get ready for the next byte
+            outputTracker += 1;
         }
 
         // 3 bytes 1110xxxx 10xxxxxx 10xxxxxx
         else if ((0x0800 <  (unsigned char)holder) && ((unsigned char)holder <= 0xFFFF)){
-            byteSize = 3;
-            bitsNeeded = 16;
+            // get the blue and add the leading 1110
+            output[outputTracker] = ((holder >> 12) | 0xEF);
+
+            // get ready for the next byte
+            outputTracker += 1;
+            // reassign holder
+            holder = input[i];
+            // get the green and move it to the right and 
+            // get rid of any 1's before it
+            holder = ((holder >> 6) & 0x3F);
+            // add the leading 10
+            holder = (holder | 0x80);
+
+            // get ready for the next byte
+            outputTracker += 1;
+            // reassign holder
+            holder = input[i];
+            // finally get the red (6 most right bits)
+            // isolate the right 6 bits
+            holder = (holder & 0x03F);  
+            // add the leading 10
+            holder = (holder | 0x80);
+            // put it in the next spot
+            output[outputTracker] = holder;
+
+            // get ready for the next byte
+            outputTracker += 1;
+
         }
         // 4 bytes 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx
         else if ((0x10000 <  (unsigned char)holder) && ((unsigned char)holder <= 0x10FFFF)){
-            byteSize = 4;
-            bitsNeeded = 21;
+            // get the purple and add the leading 11110
+            output[outputTracker] = ((holder >> 18) | 0xF7);
+
+            // get ready for the next byte
+            outputTracker += 1;
+            // reassign holder
+            holder = input[i];
+            // get the blue, the next 6 bits
+            // get rid of any 1's before it
+            holder = ((holder >> 12) & 0x3F);
+            // add the leading 10
+            holder = (holder | 0x80);
+
+            // get ready for the next byte
+            outputTracker += 1;
+            // reassign holder
+            holder = input[i];
+            // get the green and move it to the right and 
+            // get rid of any 1's before it
+            holder = ((holder >> 6) & 0x3F);
+            // add the leading 10
+            holder = (holder | 0x80);
+
+            // get ready for the next byte
+            outputTracker += 1;
+            // reassign holder
+            holder = input[i];
+            // finally get the red (6 most right bits)
+            // isolate the right 6 bits
+            holder = (holder & 0x03F);  
+            // add the leading 10
+            holder = (holder | 0x80);
+            // put it in the next spot
+            output[outputTracker] = holder;
+
+            // get ready for the next byte
+            outputTracker += 1;
         }
 
         else{
-            // In
+            // Invalid input
             return -1;
-            printf("%d", byteSize);
         }
+    }
+    //End the output
+    output[outputTracker]='\0';
 
-        //End the output
-        output[outputTracker]='\0';
-
-        for (int i = 0; output[i] != '\0'; i++){
-            printf("%X", output[i]);
-        }
-
-
-        // output[i] = 
-        
-        // output[0] = (curChar >> 4) & 0xF;
-        // output[1] = curChar & 0xF; 
-        // output[2] = '\0';
-
-        // printf("Hexadecimal representation of input[%d]: %s\n", i, output);
-
+    for (int i = 0; output[i] != '\0'; i++){
+        printf("%X", output[i]);
     }
 
     return 0;
@@ -279,11 +330,10 @@ int byteCounter(char *string1, char *string2){
 void main(){
 
     // Encode
-    // char *input = "\u20AC";
-    // char *output;
-    // my_utf8_encode(input, output);
-    // printf("%s", input);
-    // printf("%s", output);
+    char *input = "\u20AC";
+    char *output;
+    my_utf8_encode(input, output);
+    printf("%s", input);
 
     // -------------------------------------------------
     // Compare
