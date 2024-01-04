@@ -127,11 +127,99 @@ int my_utf8_encode(char *input, char *output){
     return 0;
 }
 
-
-    
 // Takes a UTF8 encoded string, and returns a string, with ASCII 
 // representation where possible, and UTF8 character representation for non-ASCII characters.
 int my_utf8_decode(char *input, char *output){
+   for (int i = 0; input[i] != '\0'; i++) {
+       char holder = input[i]; 
+
+       // 1 Byte
+       if ((holder & 0x80) == 0){
+            output = holder;
+       }
+
+       // 2 Bytes
+       if ((holder & 0xE0) == 0xC0){
+            // get rid of the leading 110
+            holder = (holder << 3);
+            output = holder;
+
+            // get rid of the leading 10
+            // reassign holder
+            holder = input[i];
+            holder = (holder << 2);
+
+            // add it to the output
+            // first we need to make room
+            output = ((unsigned char)output << 3);
+            output = ((unsigned char)output | holder);
+       }
+
+       // 3 Bytes
+       if ((holder & 0xF0) == 0xE0){
+            // get rid of the leading 1110
+            holder = (holder << 4);
+            output = holder;
+
+            // get rid of the leading 10
+            // reassign holder
+            holder = input[i];
+            holder = (holder << 2);
+
+            // add it to the output
+            // first we need to make room
+            output = ((unsigned char)output << 2);
+            output = ((unsigned char)output | holder);
+
+            // get rid of the leading 10
+            // reassign holder
+            holder = input[i];
+            holder = (holder << 2);
+
+            // add it to the output
+            // first we need to make room
+            output = ((unsigned char)output << 6);
+            output = ((unsigned char)output | holder);
+       }
+
+       // 4 Bytes
+       if ((holder & 0xF8) == 0xF0){
+            // get rid of the leading 11110
+            holder = (holder << 5);
+            output = holder;
+
+            // get rid of the leading 10
+            // reassign holder
+            holder = input[i];
+            holder = (holder << 2);
+
+            // add it to the output
+            // first we need to make room
+            output = ((unsigned char)output << 1);
+            output = ((unsigned char)output | holder);
+
+            // get rid of the leading 10
+            // reassign holder
+            holder = input[i];
+            holder = (holder << 2);
+
+            // add it to the output
+            // first we need to make room
+            output = ((unsigned char)output << 6);
+            output = ((unsigned char)output | holder);
+
+            // get rid of the leading 10
+            // reassign holder
+            holder = input[i];
+            holder = (holder << 2);
+
+            // add it to the output
+            // first we need to make room
+            output = ((unsigned char)output << 6);
+            output = ((unsigned char)output | holder);
+       }
+   }
+   return 0;
 }
 
 // Validates that the input string is a valid UTF8 encoded string.
@@ -333,7 +421,10 @@ void main(){
     char *input = "\u20AC";
     char *output;
     my_utf8_encode(input, output);
-    printf("%s", input);
+    printf("Input: \n");
+    printf("%s\n", input);
+    printf("Output: \n");
+    printf("%s\n", output); 
 
     // -------------------------------------------------
     // Compare
