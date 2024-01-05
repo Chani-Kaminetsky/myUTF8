@@ -14,13 +14,13 @@ int my_utf8_encode(char *input, char *output){
 
         // Find its range
         // 1 byte 0xxxxxxx
-        if ((0x0000 <= (unsigned char)holder) && ((unsigned char)holder <= 0x007F)){
+        if ((input[i] & 0x80) == 0){
             output[outputTracker] = ((unsigned char)holder);
             // get ready for the next byte
             outputTracker += 1;
         }
             // 2 bytes 110xxxxx	10xxxxxx
-        else if ((0x0080 <=  (unsigned char)holder) && ((unsigned char)holder <= 0x07FF)){
+        else if ((input[i] & 0xE0) == 0xC0){
             // get the green and add the leading 110
             output[outputTracker] = ((holder >> 6) | 0xC0);
 
@@ -41,7 +41,7 @@ int my_utf8_encode(char *input, char *output){
         }
 
             // 3 bytes 1110xxxx 10xxxxxx 10xxxxxx
-        else if ((0x0800 <=  (unsigned char)holder) && ((unsigned char)holder <= 0xFFFF)){
+        else if ((input[i] & 0xF0) == 0xE0){
             // get the blue and add the leading 1110
             output[outputTracker] = ((holder >> 12) | 0xEF);
 
@@ -72,7 +72,7 @@ int my_utf8_encode(char *input, char *output){
 
         }
             // 4 bytes 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx
-        else if ((0x10000 <=  (unsigned char)holder) && ((unsigned char)holder <= 0x10FFFF)){
+        else if ((input[i] & 0xF8) == 0xF0){
             // get the purple and add the leading 11110
             output[outputTracker] = ((holder >> 18) | 0xF7);
 
