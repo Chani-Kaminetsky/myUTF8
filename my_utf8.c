@@ -3,6 +3,7 @@
 // Final Project
 
 #include <stdio.h>
+#include <stdlib.h>
 
 // Encoding a UTF8 string, taking as input an ASCII string,
 // with UTF8 characters encoded using the “U+” notation, and returns a UTF8 encoded string.
@@ -12,10 +13,11 @@ int my_utf8_encode(char *input, char *output){
     for (int i = 0; input[i] != '\0'; i++) {
         char holder = input[i];
 
+
         // Find its range
         // 1 byte 0xxxxxxx
         if ((input[i] & 0x80) == 0){
-            output[outputTracker] = ((unsigned char)holder);
+            output[outputTracker] = holder;
             // get ready for the next byte
             outputTracker += 1;
         }
@@ -43,7 +45,8 @@ int my_utf8_encode(char *input, char *output){
             // 3 bytes 1110xxxx 10xxxxxx 10xxxxxx
         else if ((input[i] & 0xF0) == 0xE0){
             // get the blue and add the leading 1110
-            output[outputTracker] = ((holder >> 12) | 0xEF);
+            holder = ((holder >> 12) | 0xEF);
+            output[outputTracker] = holder;
 
             // get ready for the next byte
             outputTracker += 1;
@@ -313,7 +316,7 @@ int my_utf8_check(char *string){
         if (((string[0] >> 0x6) & 0b11) == 0b10){
             return -1;
         }
-        // If this is one byte make sure there are no following bits
+            // If this is one byte make sure there are no following bits
         else if ((string[i] & 0x80) == 0){
             if (((string[i+1] >> 0x6) & 0b11) == 0b10){
                 //invalid
@@ -500,64 +503,66 @@ int byteCounter(char *string1, char *string2){
     }
 }
 
-int spaceItOut(char *input, char *output){
+char *spaceItOut(char *input){
+    char *output = (char *)malloc(30); // assume 1-4 bytes per letter, plus spaces
+    int outputTracker = 0;
     // space = 0x20
     for (int i = 0; input[i] != '\0'; i++){
         if ((0x0000 <= (unsigned char)input[i]) && ((unsigned char)input[i] <= 0x007F)){
-            *output = input[i];
-            output++;
+            output[outputTracker] = input[i];
+            outputTracker++;
             // Add a space
-            *output = 0x20;
-            output++;
+            output[outputTracker] = 0x20;
+            outputTracker++;
         }
             // 2 bytes 110xxxxx	10xxxxxx
         else if ((0x0080 <=  (unsigned char)input[i]) && ((unsigned char)input[i] <= 0x07FF)){
-            *output = input[i];
-            output++;
-            *output = input[i+1];
-            output++;
+            output[outputTracker] = input[i];
+            outputTracker++;
+            output[outputTracker] = input[i+1];
+            outputTracker++;
             // Add a space
-            *output = 0x20;
-            output++;
+            output[outputTracker] = 0x20;
+            outputTracker++;
             //Make i jump over the next one
             i++;
         }
 
             // 3 bytes 1110xxxx 10xxxxxx 10xxxxxx
         else if ((0x0800 <=  (unsigned char)input[i]) && ((unsigned char)input[i] <= 0xFFFF)){
-            *output = input[i];
-            output++;
-            *output = input[i+1];
-            output++;
-            *output = input[i+2];
-            output++;
+            output[outputTracker] = input[i];
+            outputTracker++;
+            output[outputTracker] = input[i+1];
+            outputTracker++;
+            output[outputTracker] = input[i+2];
+            outputTracker++;
 
             // Add a space
-            *output = 0x20;
-            output++;
+            output[outputTracker] = 0x20;
+            outputTracker++;
             //Make i jump over the next two
             i += 2;
         }
-        // 4 bytes 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx
+            // 4 bytes 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx
         else if ((0x10000 <=  (unsigned char)input[i]) && ((unsigned char)input[i] <= 0x10FFFF)){
-            *output = input[i];
-            output++;
-            *output = input[i+1];
-            output++;
-            *output = input[i+2];
-            output++;
-            *output = input[i+3];
-            output++;
+            output[outputTracker] = input[i];
+            outputTracker++;
+            output[outputTracker] = input[i+1];
+            outputTracker++;
+            output[outputTracker] = input[i+2];
+            outputTracker++;
+            output[outputTracker] = input[i+3];
+            outputTracker++;
 
 
             // Add a space
-            *output = 0x20;
-            output++;
+            output[outputTracker] = 0x20;
+            outputTracker++;
             //Make i jump over the next three
             i += 3;
         }
     }
-    return 0;
+    return output;
 }
 
 // the findChar should be in hex UTF 8 format
@@ -587,8 +592,8 @@ int findMe(char *findChar, char *string){
                 return 1;
             }
         }
-        // 2 bytes 110xxxxx	10xxxxxx
-        // if the current letter is a 2 bytes letter and so is the one we are looking for, check it
+            // 2 bytes 110xxxxx	10xxxxxx
+            // if the current letter is a 2 bytes letter and so is the one we are looking for, check it
         else if (((string[i] & 0xE0) == 0xC0) && byteSize == 2){
             if ((string[i] == findChar[0]) && (string[i+1] == findChar[1])){
                 return 1;
@@ -616,69 +621,69 @@ int findMe(char *findChar, char *string){
 // // Testing
 // // ---------------------------------------------------------------------
 
- // Check Function
- void my_utf8_checkTest(char *string, int expected){
-     int actual = my_utf8_check(string);
-     printf("%s\n", string);
-     printf("%s:, expected=%d, actual=%d\n",
-             (expected == actual ? "PASSED" : "FAILED"),
-             expected, actual);
- }
+// Check Function
+void my_utf8_checkTest(char *string, int expected){
+    int actual = my_utf8_check(string);
+    printf("%s\n", string);
+    printf("%s:, expected=%d, actual=%d\n",
+           (expected == actual ? "PASSED" : "FAILED"),
+           expected, actual);
+}
 
- void my_utf8_checkTestAll() {
-     my_utf8_checkTest("אריה", 1);
-     my_utf8_checkTest("Hello 🌍", 1);
-     my_utf8_checkTest("10000011", -1);
- }
+void my_utf8_checkTestAll() {
+    my_utf8_checkTest("אריה", 1);
+    my_utf8_checkTest("Hello 🌍", 1);
+    my_utf8_checkTest("10000011", -1);
+}
 
- // ---------------------------------------------------------------------
- // Str Len
- void my_utf8_strlenTest(char *string, int expected){
-     int actual = my_utf8_strlen(string);
-     printf("%s\n", string);
-     printf("%s:, expected=%d, actual=%d\n",
-             (expected == actual ? "PASSED" : "FAILED"),
-             expected, actual);
- }
+// ---------------------------------------------------------------------
+// Str Len
+void my_utf8_strlenTest(char *string, int expected){
+    int actual = my_utf8_strlen(string);
+    printf("%s\n", string);
+    printf("%s:, expected=%d, actual=%d\n",
+           (expected == actual ? "PASSED" : "FAILED"),
+           expected, actual);
+}
 
- void my_utf8_strlenTestAll() {
-     my_utf8_strlenTest("אריה", 4);
-     my_utf8_strlenTest("Hello 🌍", 6);
-     my_utf8_strlenTest("\u00A3", 1);
- }
+void my_utf8_strlenTestAll() {
+    my_utf8_strlenTest("אריה", 4);
+    my_utf8_strlenTest("Hello 🌍", 6);
+    my_utf8_strlenTest("\u00A3", 1);
+}
 
- // ---------------------------------------------------------------------
- // Charat
- int my_utf8_charatTest(char *string, int index, char expected){
-     char actual = *my_utf8_charat(string, index);
-     printf("%s\n", string);
-     printf("%s:, expected=%s, actual=%s\n",
-             ((unsigned char) expected == actual ? "PASSED" : "FAILED"),
-             expected, actual);
-     return 0;
- }
+// ---------------------------------------------------------------------
+// Charat
+int my_utf8_charatTest(char *string, int index, char expected){
+    char actual = *my_utf8_charat(string, index);
+    printf("%s\n", string);
+    printf("%s:, expected=%s, actual=%s\n",
+           ((unsigned char) expected == actual ? "PASSED" : "FAILED"),
+           expected, actual);
+    return 0;
+}
 
- void my_utf8_charatTestAll() {
-     my_utf8_charatTest("\u00A3", 0, "£");
- }
+void my_utf8_charatTestAll() {
+    my_utf8_charatTest("\u00A3", 0, "£");
+}
 
- // ---------------------------------------------------------------------
- // Strcmp
- int my_utf8_strcmpTest(char *string1, char *string2, int expected){
-     int actual = my_utf8_strcmp(string1, string2);
-     printf("%s\n", string1);
-     printf("%s\n", string2);
-     printf("%s:, expected=%d, actual=%d\n",
-             (expected == actual ? "PASSED" : "FAILED"),
-             expected, actual);
- }
+// ---------------------------------------------------------------------
+// Strcmp
+int my_utf8_strcmpTest(char *string1, char *string2, int expected){
+    int actual = my_utf8_strcmp(string1, string2);
+    printf("%s\n", string1);
+    printf("%s\n", string2);
+    printf("%s:, expected=%d, actual=%d\n",
+           (expected == actual ? "PASSED" : "FAILED"),
+           expected, actual);
+}
 
- void my_utf8_strcmpTestAll() {
-     my_utf8_strcmpTest("\u00A3", "\u00A3", 1);
-     my_utf8_strcmpTest("Hello", "\u00A3", -1);
-     my_utf8_strcmpTest("🌍", "A", -1);
-     my_utf8_strcmpTest("£", "£", 1);
- }
+void my_utf8_strcmpTestAll() {
+    my_utf8_strcmpTest("\u00A3", "\u00A3", 1);
+    my_utf8_strcmpTest("Hello", "\u00A3", -1);
+    my_utf8_strcmpTest("🌍", "A", -1);
+    my_utf8_strcmpTest("£", "£", 1);
+}
 
 // ---------------------------------------------------------------------
 // Byte Counter
@@ -715,6 +720,22 @@ void my_utf8_findMeTestAll() {
     my_utf8_findMeTest("י", "חני", 1);
 }
 
+// Space it out
+void my_utf8_spaceItOutTest(char *string, char *expected){
+    char *actual = spaceItOut(string);
+    printf("%s\n", string);
+    printf("%s\n", expected);
+    printf("%s:, expected=%s, actual=%s\n",
+           (*expected == *actual ? "PASSED" : "FAILED"),
+           expected, actual);
+}
+
+void my_utf8_spaceItOutTestAll() {
+    my_utf8_spaceItOutTest("אריה", "א ר י ה ");
+    my_utf8_spaceItOutTest("Hello", "H e l l o ");
+    my_utf8_spaceItOutTest("㗂越呐㗂越呐㗂越呐", "㗂 越 呐 㗂 越 呐 㗂 越 呐 ");
+}
+
 void main(){
     // my_utf8_checkTestAll();
     // my_utf8_strlenTestAll();
@@ -722,6 +743,7 @@ void main(){
     // my_utf8_strcmpTestAll();
     // my_utf8_byteCounterTestAll();
     // my_utf8_findMeTestAll();
+    my_utf8_spaceItOutTestAll();
 
 
 //    // Encode
@@ -733,14 +755,6 @@ void main(){
 //    printf("Output: \n");
 //    printf("%s\n", output);
 
-    // -------------------------------------------------
-    // Length
-    // printf("Hello\n");
-    // printf("%d\n", my_utf8_strlen("Hello"));
-    // printf("%s\n", "\xC2\xA3");
-    // printf("%d\n", my_utf8_strlen("\u00A3"));
-    // char *lenStr = "אריה";
-    // printf("%d\n", my_utf8_strlen(lenStr));
 
     // -------------------------------------------------
     // Str Charat - NEED TO FIX
