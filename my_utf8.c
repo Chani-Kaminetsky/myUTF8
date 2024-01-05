@@ -4,7 +4,7 @@
 
 #include <stdio.h>
 
-// Encoding a UTF8 string, taking as input an ASCII string, 
+// Encoding a UTF8 string, taking as input an ASCII string,
 // with UTF8 characters encoded using the “U+” notation, and returns a UTF8 encoded string.
 int my_utf8_encode(char *input, char *output){
     int outputTracker = 0;
@@ -14,13 +14,13 @@ int my_utf8_encode(char *input, char *output){
 
         // Find its range
         // 1 byte 0xxxxxxx
-        if ((0x0000 < (unsigned char)holder) && ((unsigned char)holder <= 0x007F)){
+        if ((0x0000 <= (unsigned char)holder) && ((unsigned char)holder <= 0x007F)){
             output[outputTracker] = ((unsigned char)holder);
             // get ready for the next byte
             outputTracker += 1;
         }
-        // 2 bytes 110xxxxx	10xxxxxx
-        else if ((0x0080 <  (unsigned char)holder) && ((unsigned char)holder <= 0x07FF)){
+            // 2 bytes 110xxxxx	10xxxxxx
+        else if ((0x0080 <=  (unsigned char)holder) && ((unsigned char)holder <= 0x07FF)){
             // get the green and add the leading 110
             output[outputTracker] = ((holder >> 6) | 0xC0);
 
@@ -30,7 +30,7 @@ int my_utf8_encode(char *input, char *output){
             holder = input[i];
             // get the red and add the leading 10
             // isolate the right 6 bits
-            holder = (holder & 0x3F); 
+            holder = (holder & 0x3F);
             // add the leading 10
             holder = (holder | 0x80);
             // put it in the next spot
@@ -40,8 +40,8 @@ int my_utf8_encode(char *input, char *output){
             outputTracker += 1;
         }
 
-        // 3 bytes 1110xxxx 10xxxxxx 10xxxxxx
-        else if ((0x0800 <  (unsigned char)holder) && ((unsigned char)holder <= 0xFFFF)){
+            // 3 bytes 1110xxxx 10xxxxxx 10xxxxxx
+        else if ((0x0800 <=  (unsigned char)holder) && ((unsigned char)holder <= 0xFFFF)){
             // get the blue and add the leading 1110
             output[outputTracker] = ((holder >> 12) | 0xEF);
 
@@ -49,7 +49,7 @@ int my_utf8_encode(char *input, char *output){
             outputTracker += 1;
             // reassign holder
             holder = input[i];
-            // get the green and move it to the right and 
+            // get the green and move it to the right and
             // get rid of any 1's before it
             holder = ((holder >> 6) & 0x3F);
             // add the leading 10
@@ -61,7 +61,7 @@ int my_utf8_encode(char *input, char *output){
             holder = input[i];
             // finally get the red (6 most right bits)
             // isolate the right 6 bits
-            holder = (holder & 0x03F);  
+            holder = (holder & 0x03F);
             // add the leading 10
             holder = (holder | 0x80);
             // put it in the next spot
@@ -71,8 +71,8 @@ int my_utf8_encode(char *input, char *output){
             outputTracker += 1;
 
         }
-        // 4 bytes 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx
-        else if ((0x10000 <  (unsigned char)holder) && ((unsigned char)holder <= 0x10FFFF)){
+            // 4 bytes 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx
+        else if ((0x10000 <=  (unsigned char)holder) && ((unsigned char)holder <= 0x10FFFF)){
             // get the purple and add the leading 11110
             output[outputTracker] = ((holder >> 18) | 0xF7);
 
@@ -90,7 +90,7 @@ int my_utf8_encode(char *input, char *output){
             outputTracker += 1;
             // reassign holder
             holder = input[i];
-            // get the green and move it to the right and 
+            // get the green and move it to the right and
             // get rid of any 1's before it
             holder = ((holder >> 6) & 0x3F);
             // add the leading 10
@@ -102,7 +102,7 @@ int my_utf8_encode(char *input, char *output){
             holder = input[i];
             // finally get the red (6 most right bits)
             // isolate the right 6 bits
-            holder = (holder & 0x03F);  
+            holder = (holder & 0x03F);
             // add the leading 10
             holder = (holder | 0x80);
             // put it in the next spot
@@ -127,24 +127,24 @@ int my_utf8_encode(char *input, char *output){
     return 0;
 }
 
-// Takes a UTF8 encoded string, and returns a string, with ASCII 
+// Takes a UTF8 encoded string, and returns a string, with ASCII
 // representation where possible, and UTF8 character representation for non-ASCII characters.
 int my_utf8_decode(char *input, char *output){
     int outputTracker = 0;
-   for (int i = 0; input[i] != '\0'; i++) {
-       char holder = input[i]; 
+    for (int i = 0; input[i] != '\0'; i++) {
+        char holder = input[i];
 
-       // 1 Byte
-       if ((holder & 0x80) == 0){
+        // 1 Byte
+        if ((holder & 0x80) == 0){
             // ascii so it doesn't need \u
             output[outputTracker] = holder;
             // Signifying ending
             outputTracker ++;
             output[outputTracker] = '\0';
             break;
-       }
-       // 2 Bytes
-       if ((holder & 0xE0) == 0xC0){
+        }
+        // 2 Bytes
+        if ((holder & 0xE0) == 0xC0){
             // start with a \u
             output[outputTracker] = 0x5C;
             outputTracker ++;
@@ -168,7 +168,7 @@ int my_utf8_decode(char *input, char *output){
             output[outputTracker] = holder;
             // make room for only two more bits
             output[outputTracker] = (output[outputTracker] >> 2);
-            
+
             // on to the next input location
             // get rid of the leading 10
             // reassign holder
@@ -185,17 +185,17 @@ int my_utf8_decode(char *input, char *output){
             // reassign holder
             holder = input[1];
             holder = (holder & 0x0F);
-            output[outputTracker] = holder; 
+            output[outputTracker] = holder;
 
             // Signifying ending
             outputTracker ++;
             output[outputTracker] = '\0';
             break;
 
-       }
+        }
 
-       // 3 Bytes
-       if ((holder & 0xF0) == 0xE0){
+        // 3 Bytes
+        if ((holder & 0xF0) == 0xE0){
             // get rid of the leading 1110
             holder = (holder & 0x0F);
             output[outputTracker] = holder;
@@ -216,14 +216,14 @@ int my_utf8_decode(char *input, char *output){
             holder = input[1];
             holder = (holder & 0x3);
             holder = (holder << 2);
-            output[outputTracker] = holder; 
+            output[outputTracker] = holder;
 
             // Take the next two bits from the next hex digit
             holder = input[2];
             // Get rid of leading 10
-            holder = (holder << 2); 
+            holder = (holder << 2);
             holder = (holder >> 4);
-            output[outputTracker] = (output[outputTracker] | holder); 
+            output[outputTracker] = (output[outputTracker] | holder);
 
             // Next hex of the unicode
             outputTracker ++;
@@ -237,10 +237,10 @@ int my_utf8_decode(char *input, char *output){
             outputTracker ++;
             output[outputTracker] = '\0';
             break;
-       }
+        }
 
-       // 4 Bytes
-       if ((holder & 0xF8) == 0xF0){
+        // 4 Bytes
+        if ((holder & 0xF8) == 0xF0){
             // Purple
             holder = (holder << 6);
             holder = (holder >> 6);
@@ -251,7 +251,7 @@ int my_utf8_decode(char *input, char *output){
             // go to the next hex in utf
             holder = input[1];
             holder = (holder << 2);
-            holder = (holder >> 6); 
+            holder = (holder >> 6);
             output[outputTracker] = (output[outputTracker] | holder);
 
             // finish blue
@@ -259,7 +259,7 @@ int my_utf8_decode(char *input, char *output){
             holder = input[1];
             holder = (holder & 0x0F);
             // Next hex of the unicode
-            outputTracker ++; 
+            outputTracker ++;
             output[outputTracker] = holder;
 
             // do green then red
@@ -280,14 +280,14 @@ int my_utf8_decode(char *input, char *output){
             holder = input[2];
             holder = (holder & 0x3);
             holder = (holder << 2);
-            output[outputTracker] = holder; 
+            output[outputTracker] = holder;
 
             // Take the next two bits from the next hex digit
             holder = input[3];
             // Get rid of leading 10
-            holder = (holder << 2); 
+            holder = (holder << 2);
             holder = (holder >> 4);
-            output[outputTracker] = (output[outputTracker] | holder); 
+            output[outputTracker] = (output[outputTracker] | holder);
 
             // Next hex of the unicode
             outputTracker ++;
@@ -300,54 +300,53 @@ int my_utf8_decode(char *input, char *output){
             // Signifying ending
             outputTracker ++;
             output[outputTracker] = '\0';
-            break; 
+            break;
 
-       }
-   }
-   return 0;
+        }
+    }
+    return 0;
 }
 
 // Validates that the input string is a valid UTF8 encoded string.
 int my_utf8_check(char *string){
-    // check for out of bounds, > \U10FFFF
-    // check for valid leading etc
-    // check for overlong encoding
     for (int i = 0; string[i] != '\0'; i++){
+        if (((string[0] >> 0x6) & 0b11) == 0b10){
+            return -1;
+        }
         // If this is one byte make sure there are no following bits
-        if (((string[i] >> 0x7) && 0x0001) == 0){
-            if (((string[i+1] >> 0x6) && 0x0010) == 10){
+        else if ((string[i] & 0x80) == 0){
+            if (((string[i+1] >> 0x6) & 0b11) == 0b10){
                 //invalid
                 return -1;
             }
         }
-        // If it's 2 bytes make sure there is only one following byte
-        else if (((string[i] >> 0xD) && 0x110) == 0x6){
-           if ((((string[i+1] >> 0x6) && 0x0010) != 10) || \
-           (((string[i+2] >> 0x6) && 0x0010) == 10)){
+            // If it's 2 bytes make sure there is only one following byte
+        else if ((string[i] & 0xE0) == 0xC0){
+            if (((string[i+1] >> 0x6) & 0b11) != 0b10){
+                printf("%d", ((string[i+1] >> 0x6) != 0b10));
+                printf("%d", ((string[i+2] >> 0x6) == 0b10));
                 //invalid
                 return -1;
-           }
+            }
         }
-        // 3 bytes check that there are only 2 following bytes
-        else if (((string[i] >> 0x14) && 0x1110) == 0xE){
-          if ((((string[i+1] >> 0x6) && 0x0010) != 10) || \
-           (((string[i+2] >> 0x6) && 0x0010) != 10) || \
-            (((string[i+3] >> 0x6) && 0x0010) == 10) )
-           {
+            // 3 bytes check that there are only 2 following bytes
+        else if ((string[i] & 0xF0) == 0xE0){
+            if ((((string[i+1] >> 0x6) & 0b11) != 0b10) || \
+            ((string[i+2] >> 0x6) != 0b10))
+            {
                 //invalid
                 return -1;
-           }
+            }
         }
-        // 4 bytes check that there are only 3 following bytes
-        else if (((string[i] >> 0x1B) && 0x11110) == 0x3E){
-          if ((((string[i+1] >> 0x6) && 0x0010) != 10) || \
-           (((string[i+2] >> 0x6) && 0x0010) != 10) || \
-           (((string[i+3] >> 0x6) && 0x0010) != 10) || \
-            (((string[i+4] >> 0x6) && 0x0010) == 10) )
-           {
+            // 4 bytes check that there are only 3 following bytes
+        else if ((string[i] & 0xF8) == 0xF0){
+            if ((((string[i+1] >> 0x6) & 0b11) != 0b10) || \
+           (((string[i+2] >> 0x6) & 0b11) != 0b10) || \
+           (((string[i+3] >> 0x6) & 0b11) != 0b10))
+            {
                 //invalid
                 return -1;
-           } 
+            }
         }
     }
     // It is valid
@@ -372,57 +371,58 @@ int my_utf8_strlen(char *string){
 // Returns the UTF8 encoded character at the location specified.
 char *my_utf8_charat(char *string, int index){
     int completeLetters = 0;
-    char *answer;
+    char answer[6];
+    int answerTracker = 0;
 
     for (int i = 0; string[i] != '\0'; i++){
         // If we haven't reached our goal yet, keep moving
         // along the letters in the word
         if (completeLetters != (index)){
 
-        if (((string[i] >> 0x7) & 0x0001) == 0){
-           // 1 byte long
-           completeLetters += 1;
-        }
-        else if (((string[i] >> 0xD) & 0x110) == 0x6){
-           // 2 bytes so increment 1 here and the loop will do the other
-           i += 1;
-           completeLetters += 1;
-        }
-        else if (((string[i] >> 0x14) & 0x1110) == 0xE){
-           // 3 bytes so increment 2 here and the loop will do the other
-           i += 2;
-           completeLetters += 1;
-        }
-        else if (((string[i] >> 0x1B) & 0x11110) == 0x3E){
-           // 4 bytes so increment 3 here and the loop will do the other
-           i += 3;
-           completeLetters += 1;
-        }
+            if ((string[i] & 0x80) == 0){
+                // 1 byte long
+                completeLetters += 1;
+            }
+            else if ((string[i] & 0xE0) == 0xC0){
+                // 2 bytes so increment 1 here and the loop will do the other
+                i += 1;
+                completeLetters += 1;
+            }
+            else if ((string[i] & 0xF0) == 0xE0){
+                // 3 bytes so increment 2 here and the loop will do the other
+                i += 2;
+                completeLetters += 1;
+            }
+            else if ((string[i] & 0xF8) == 0xF0){
+                // 4 bytes so increment 3 here and the loop will do the other
+                i += 3;
+                completeLetters += 1;
+            }
         }
 
-        // We have reached our goal index
+            // We have reached our goal index
         else if (completeLetters == (index)){
-            for (int j=i; (((string[j] >> 6) & 0x0001) != 0); j++){
-                *answer = string[j];
-                answer++;
+            for (int j=i; (((string[j] >> 6) & 0b0001) != 0); j++){
+                answer[answerTracker] = string[j];
+                answerTracker++;
             }
             return answer;
 
-        } 
+        }
     }
-    
+
     //Out of bounds, we finished the word and didn't reach the index
     return NULL;
 }
 
-// Returns whether the two strings are the same 
+// Returns whether the two strings are the same
 // (similar result set to strcmp() )
 int my_utf8_strcmp(char *string1, char *string2){
 
-    // Accounts for the typical string termination as well 
-    // as the the type of
+    // Accounts for the typical string termination as well
+    // as the type of
     while (*string1 != '\0' && *string2 != '\0') {
-        
+
         // if they are different return -1 now
         if (*string1 != *string2) {
             return -1;
@@ -438,8 +438,8 @@ int my_utf8_strcmp(char *string1, char *string2){
         return 1;
     }
 
-    // If one is longer than the other-they are not the
-    // same and return -1
+        // If one is longer than the other-they are not the
+        // same and return -1
     else{
         return -1;
     }
@@ -454,32 +454,32 @@ int byteCounter(char *string1, char *string2){
     int byteCounter2 = 0;
 
     for (int i = 0; string1[i] != '\0'; i++){
-        if (((string1[i] >> 0x7 == 0) & 0x0001) != 0){
-           byteCounter1 += 1; 
+        if ((string1[i] & 0x80) == 0){
+            byteCounter1 += 1;
         }
-        else if (((string1[i] >> 0xD) & 0x110) == 0x6){ //110
-           byteCounter1 += 2;  
+        else if ((string1[i] & 0xE0) == 0xC0){ //110
+            byteCounter1 += 2;
         }
-        else if (((string1[i] >> 0x14) & 0x1110) == 0xE){ //1110
-           byteCounter1 += 3;  
+        else if ((string1[i] & 0xF0) == 0xE0){ //1110
+            byteCounter1 += 3;
         }
-        else if (((string1[i] >> 0x1B) & 0x11110) == 0x3E){ //111110
-           byteCounter1 += 4;  
+        else if ((string1[i] & 0xF8) == 0xF0){ //111110
+            byteCounter1 += 4;
         }
     }
 
     for (int i = 0; string2[i] != '\0'; i++){
-        if (((string2[i] >> 0x7 == 0) & 0x0001) != 0){
-           byteCounter2 += 1; 
+        if ((string2[i] & 0x80) == 0){
+            byteCounter2 += 1;
         }
-        else if (((string2[i] >> 0xD) & 0x110) == 0x6){ //110
-           byteCounter2 += 2;  
+        else if ((string1[i] & 0xE0) == 0xC0){ //110
+            byteCounter2 += 2;
         }
-        else if (((string2[i] >> 0x14) & 0x1110) == 0xE){ //1110
-           byteCounter2 += 3;  
+        else if ((string2[i] & 0xF0) == 0xE0){ //1110
+            byteCounter2 += 3;
         }
-        else if (((string2[i] >> 0x1B) & 0x11110) == 0x3E){ //111110
-           byteCounter2 += 4;  
+        else if ((string2[i] & 0xF8) == 0xF0){ //111110
+            byteCounter2 += 4;
         }
     }
 
@@ -500,34 +500,238 @@ int byteCounter(char *string1, char *string2){
     }
 }
 
+int spaceItOut(char *input, char *output){
+    // space = 0x20
+    for (int i = 0; input[i] != '\0'; i++){
+        if ((0x0000 <= (unsigned char)input[i]) && ((unsigned char)input[i] <= 0x007F)){
+            *output = input[i];
+            output++;
+            // Add a space
+            *output = 0x20;
+            output++;
+        }
+            // 2 bytes 110xxxxx	10xxxxxx
+        else if ((0x0080 <=  (unsigned char)input[i]) && ((unsigned char)input[i] <= 0x07FF)){
+            *output = input[i];
+            output++;
+            *output = input[i+1];
+            output++;
+            // Add a space
+            *output = 0x20;
+            output++;
+            //Make i jump over the next one
+            i++;
+        }
+
+            // 3 bytes 1110xxxx 10xxxxxx 10xxxxxx
+        else if ((0x0800 <=  (unsigned char)input[i]) && ((unsigned char)input[i] <= 0xFFFF)){
+            *output = input[i];
+            output++;
+            *output = input[i+1];
+            output++;
+            *output = input[i+2];
+            output++;
+
+            // Add a space
+            *output = 0x20;
+            output++;
+            //Make i jump over the next two
+            i += 2;
+        }
+        // 4 bytes 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx
+        else if ((0x10000 <=  (unsigned char)input[i]) && ((unsigned char)input[i] <= 0x10FFFF)){
+            *output = input[i];
+            output++;
+            *output = input[i+1];
+            output++;
+            *output = input[i+2];
+            output++;
+            *output = input[i+3];
+            output++;
+
+
+            // Add a space
+            *output = 0x20;
+            output++;
+            //Make i jump over the next three
+            i += 3;
+        }
+    }
+    return 0;
+}
+
+// the findChar should be in hex UTF 8 format
+// This function will return 1 if the character is found in the string and -1 if it is not
+int findMe(char *findChar, char *string){
+    int byteSize;
+
+    // figure out how many bits the character we are looking for is
+    if (((findChar[0] >> 0x7) & 0b1) == 0b0){
+        byteSize = 1;
+    }
+    else if (((findChar[0] >> 0x5) & 0b111) == 0b110){
+        byteSize = 2;
+    }
+    else if (((findChar[0] >> 0x4) & 0b1111) == 0b1110){
+        byteSize = 3;
+    }
+    else if (((findChar[0] >> 0x3) & 0b11111) == 0b11110){
+        byteSize = 4;
+    }
+
+
+    for (int i = 0; string[i] != '\0'; i++){
+        // if the current letter is a 1 byte letter and so is the one we are looking for, check it
+        if (((string[i] & 0x80) == 0) && byteSize == 1){
+            if (string[i] == findChar[0]){
+                return 1;
+            }
+        }
+        // 2 bytes 110xxxxx	10xxxxxx
+        // if the current letter is a 2 bytes letter and so is the one we are looking for, check it
+        else if (((string[i] & 0xE0) == 0xC0) && byteSize == 2){
+            if ((string[i] == findChar[0]) && (string[i+1] == findChar[1])){
+                return 1;
+            }
+        }
+
+            // 3 bytes 1110xxxx 10xxxxxx 10xxxxxx
+        else if (((string[i] & 0xF0) == 0xE0) && byteSize == 3){
+            if ((string[i] == findChar[0]) && (string[i+1] == findChar[1]) && (string[i+2] == findChar[2])){
+                return 1;
+            }
+        }
+            // 4 bytes 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx
+        else if (((string[i] & 0xF8) == 0xF0) && byteSize == 4){
+            if ((string[i] == findChar[0]) && (string[i+1] == findChar[1]) && (string[i+2] == findChar[2]) && (string[i+3] == findChar[3])){
+                return 1;
+            }
+        }
+    }
+    // Not found
+    return -1;
+}
+
+
+// // Testing
+// // ---------------------------------------------------------------------
+
+ // Check Function
+ void my_utf8_checkTest(char *string, int expected){
+     int actual = my_utf8_check(string);
+     printf("%s\n", string);
+     printf("%s:, expected=%d, actual=%d\n",
+             (expected == actual ? "PASSED" : "FAILED"),
+             expected, actual);
+ }
+
+ void my_utf8_checkTestAll() {
+     my_utf8_checkTest("אריה", 1);
+     my_utf8_checkTest("Hello 🌍", 1);
+     my_utf8_checkTest("10000011", -1);
+ }
+
+ // ---------------------------------------------------------------------
+ // Str Len
+ void my_utf8_strlenTest(char *string, int expected){
+     int actual = my_utf8_strlen(string);
+     printf("%s\n", string);
+     printf("%s:, expected=%d, actual=%d\n",
+             (expected == actual ? "PASSED" : "FAILED"),
+             expected, actual);
+ }
+
+ void my_utf8_strlenTestAll() {
+     my_utf8_strlenTest("אריה", 4);
+     my_utf8_strlenTest("Hello 🌍", 6);
+     my_utf8_strlenTest("\u00A3", 1);
+ }
+
+ // ---------------------------------------------------------------------
+ // Charat
+ int my_utf8_charatTest(char *string, int index, char expected){
+     char actual = *my_utf8_charat(string, index);
+     printf("%s\n", string);
+     printf("%s:, expected=%s, actual=%s\n",
+             ((unsigned char) expected == actual ? "PASSED" : "FAILED"),
+             expected, actual);
+     return 0;
+ }
+
+ void my_utf8_charatTestAll() {
+     my_utf8_charatTest("\u00A3", 0, "£");
+ }
+
+ // ---------------------------------------------------------------------
+ // Strcmp
+ int my_utf8_strcmpTest(char *string1, char *string2, int expected){
+     int actual = my_utf8_strcmp(string1, string2);
+     printf("%s\n", string1);
+     printf("%s\n", string2);
+     printf("%s:, expected=%d, actual=%d\n",
+             (expected == actual ? "PASSED" : "FAILED"),
+             expected, actual);
+ }
+
+ void my_utf8_strcmpTestAll() {
+     my_utf8_strcmpTest("\u00A3", "\u00A3", 1);
+     my_utf8_strcmpTest("Hello", "\u00A3", -1);
+     my_utf8_strcmpTest("🌍", "A", -1);
+     my_utf8_strcmpTest("£", "£", 1);
+ }
+
+// ---------------------------------------------------------------------
+// Byte Counter
+void my_utf8_byteCounterTest(char *string1, char *string2, int expected){
+    int actual = byteCounter(string1, string2);
+    printf("%s\n", string1);
+    printf("%s\n", string2);
+    printf("%s:, expected=%d, actual=%d\n",
+           (expected == actual ? "PASSED" : "FAILED"),
+           expected, actual);
+}
+
+void my_utf8_byteCounterTestAll() {
+    my_utf8_byteCounterTest("אריה", "אריה", 0);
+    my_utf8_byteCounterTest("Hello 🌍", "Hello", 1);
+    my_utf8_byteCounterTest("\u00A3", "\u00A3", 0);
+    my_utf8_byteCounterTest("A", "\u20AC", 2);
+}
+
+// Byte Counter
+void my_utf8_findMeTest(char *findChar, char *string, int expected){
+    int actual = findMe(findChar, string);
+    printf("%s\n", findChar);
+    printf("%s\n", string);
+    printf("%s:, expected=%d, actual=%d\n",
+           (expected == actual ? "PASSED" : "FAILED"),
+           expected, actual);
+}
+
+void my_utf8_findMeTestAll() {
+    my_utf8_findMeTest("א", "אריה", 1);
+    my_utf8_findMeTest("🌍", "Hello", -1);
+    my_utf8_findMeTest("\u00A3", "\u00A3", 1);
+    my_utf8_findMeTest("י", "חני", 1);
+}
+
 void main(){
+    // my_utf8_checkTestAll();
+    // my_utf8_strlenTestAll();
+    // my_utf8_charatTestAll(); //issues
+    // my_utf8_strcmpTestAll();
+    // my_utf8_byteCounterTestAll();
+    // my_utf8_findMeTestAll();
 
-    // Encode
-    char *input = "\u20AC";
-    char *output;
-    my_utf8_encode(input, output);
-    printf("Input: \n");
-    printf("%s\n", input);
-    printf("Output: \n");
-    printf("%s\n", output); 
 
-    // -------------------------------------------------
-    // Compare
-    // char *string1 = "Hello";
-    // char *string2 = "Hello";
-    // printf("%d\n", my_utf8_strcmp(string1, string2));
-
-    // char *string1B = "Helloooooo";
-    // char *string2B = "Hello";
-    // printf("%d\n", my_utf8_strcmp(string1B, string2B));
-
-    // char *string1C = "אריה";
-    // char *string2C = "אריה";
-    // printf("%d\n", my_utf8_strcmp(string1C, string2C));
-     
-    // char *string1D = "\u05D0\u05E8\u05D9\u05D4";
-    // char *string2D = "אריה";
-    // printf("%d\n", my_utf8_strcmp(string1D, string2D));
+//    // Encode
+//    char *input = "\u20AC";
+//    char *output;
+//    my_utf8_encode(input, output);
+//    printf("Input: \n");
+//    printf("%s\n", input);
+//    printf("Output: \n");
+//    printf("%s\n", output);
 
     // -------------------------------------------------
     // Length
@@ -543,67 +747,4 @@ void main(){
     // char *stringCharat = "\u05D0\u05E8\u05D9\u05D4";
     // printf("%X", *my_utf8_charat(stringCharat, 2));
 
-    // -------------------------------------------------
-    // Byte Counter - NEED TO FIX
-    // char *string1E = "\u05D0\u05E8\u05D9\u05D4"; 
-    // char *string2E = "\u05D0\u05E8\u05D9\u05D4";
-    // printf("%d", byteCounter(string1E, string2E));
 }
-
-// // Testing
-// // ---------------------------------------------------------------------
-
-// // Check Function
-// int my_utf8_checkTest(unsigned char *string, int expected){
-//     int actual = my_utf8_check(string);
-//     printf("%s\n", string);
-//     printf("%s:, expected=%d, actual=%d\n",
-//             (expected == actual ? "PASSED" : "FAILED"),
-//             expected, actual);
-// }
-
-// void my_utf8_checkTestAll() {
-//     my_utf8_checkTest("\u00A3", 1);
-// } 
-
-// // ---------------------------------------------------------------------
-// // Str Len
-// int my_utf8_strlenTest(unsigned char *string, int expected){
-//     int actual = my_utf8_strlen(string);
-//     printf("%s\n", string);
-//     printf("%s:, expected=%d, actual=%d\n",
-//             (expected == actual ? "PASSED" : "FAILED"),
-//             expected, actual);
-// }
-
-// void my_utf8_strlenTestAll() {
-//     my_utf8_strlenTest("\u00A3", 1);
-// }
-
-// // ---------------------------------------------------------------------
-// // Charat
-// char *my_utf8_charatTest(unsigned char *string, int index, int expected){
-//     int actual = *my_utf8_charat(string, index);
-//     printf("%s\n", string);
-//     printf("%s:, expected=%d, actual=%d\n",
-//             (expected == actual ? "PASSED" : "FAILED"),
-//             expected, actual);
-// }
-
-// void my_utf8_checkTestAll() {
-//     my_utf8_charatTest("\u00A3", 0, 1); //change the 1
-// }
-
-// // ---------------------------------------------------------------------
-// // Strcmp
-// int my_utf8_strcmpTest(unsigned char *string1, unsigned char *string2, int expected){
-//     int actual = my_utf8_strcmp(string1, string2);
-//     printf("%s\n", string1, string2);
-//     printf("%s:, expected=%d, actual=%d\n",
-//             (expected == actual ? "PASSED" : "FAILED"),
-//             expected, actual);
-// }
-
-// void my_utf8_strcmpTestAll() {
-//     my_utf8_strcmpTest("\u00A3", "\u00A3", 1);
-// }
