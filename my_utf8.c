@@ -374,8 +374,8 @@ int my_utf8_strlen(char *string){
 // Returns the UTF8 encoded character at the location specified.
 char *my_utf8_charat(char *string, int index){
     int completeLetters = 0;
-    char answer[6];
     int answerTracker = 0;
+    char *answer = (char *)malloc(30);
 
     for (int i = 0; string[i] != '\0'; i++){
         // If we haven't reached our goal yet, keep moving
@@ -405,7 +405,8 @@ char *my_utf8_charat(char *string, int index){
 
             // We have reached our goal index
         else if (completeLetters == (index)){
-            for (int j=i; (((string[j] >> 6) & 0b0001) != 0); j++){
+            // Start from wherever we are up to and continue until we are not at a following byte
+            for (int j=i; (((string[j] >> 6) & 0b11) != 0b10); j++){
                 answer[answerTracker] = string[j];
                 answerTracker++;
             }
@@ -413,8 +414,7 @@ char *my_utf8_charat(char *string, int index){
 
         }
     }
-
-    //Out of bounds, we finished the word and didn't reach the index
+//Out of bounds, we finished the word and didn't reach the index
     return NULL;
 }
 
@@ -503,6 +503,59 @@ int byteCounter(char *string1, char *string2){
     }
 }
 
+
+// the findChar should be in hex UTF 8 format
+// This function will return 1 if the character is found in the string and -1 if it is not
+int findMe(char *findChar, char *string){
+    int byteSize = 0;
+
+    // figure out how many bits the character we are looking for is
+    if (((findChar[0] >> 0x7) & 0b1) == 0b0){
+        byteSize = 1;
+    }
+    else if (((findChar[0] >> 0x5) & 0b111) == 0b110){
+        byteSize = 2;
+    }
+    else if (((findChar[0] >> 0x4) & 0b1111) == 0b1110){
+        byteSize = 3;
+    }
+    else if (((findChar[0] >> 0x3) & 0b11111) == 0b11110){
+        byteSize = 4;
+    }
+
+
+    for (int i = 0; string[i] != '\0'; i++){
+        // if the current letter is a 1 byte letter and so is the one we are looking for, check it
+        if (((string[i] & 0x80) == 0) && byteSize == 1){
+            if (string[i] == findChar[0]){
+                return 1;
+            }
+        }
+            // 2 bytes 110xxxxx	10xxxxxx
+            // if the current letter is a 2 bytes letter and so is the one we are looking for, check it
+        else if (((string[i] & 0xE0) == 0xC0) && byteSize == 2){
+            if ((string[i] == findChar[0]) && (string[i+1] == findChar[1])){
+                return 1;
+            }
+        }
+
+            // 3 bytes 1110xxxx 10xxxxxx 10xxxxxx
+        else if (((string[i] & 0xF0) == 0xE0) && byteSize == 3){
+            if ((string[i] == findChar[0]) && (string[i+1] == findChar[1]) && (string[i+2] == findChar[2])){
+                return 1;
+            }
+        }
+            // 4 bytes 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx
+        else if (((string[i] & 0xF8) == 0xF0) && byteSize == 4){
+            if ((string[i] == findChar[0]) && (string[i+1] == findChar[1]) && (string[i+2] == findChar[2]) && (string[i+3] == findChar[3])){
+                return 1;
+            }
+        }
+    }
+    // Not found
+    return -1;
+}
+
 char *spaceItOut(char *input){
     char *output = (char *)malloc(30); // assume 1-4 bytes per letter, plus spaces
     int outputTracker = 0;
@@ -565,22 +618,23 @@ char *spaceItOut(char *input){
     return output;
 }
 
-// the findChar should be in hex UTF 8 format
-// This function will return 1 if the character is found in the string and -1 if it is not
-int findMe(char *findChar, char *string){
-    int byteSize;
+// the countChar should be in hex UTF 8 format
+// This function will return the amount of times the char countMe appears
+int countIt(char *countChar, char *string){
+    int byteSize = 0;
+    int keepTrack = 0;
 
     // figure out how many bits the character we are looking for is
-    if (((findChar[0] >> 0x7) & 0b1) == 0b0){
+    if (((countChar[0] >> 0x7) & 0b1) == 0b0){
         byteSize = 1;
     }
-    else if (((findChar[0] >> 0x5) & 0b111) == 0b110){
+    else if (((countChar[0] >> 0x5) & 0b111) == 0b110){
         byteSize = 2;
     }
-    else if (((findChar[0] >> 0x4) & 0b1111) == 0b1110){
+    else if (((countChar[0] >> 0x4) & 0b1111) == 0b1110){
         byteSize = 3;
     }
-    else if (((findChar[0] >> 0x3) & 0b11111) == 0b11110){
+    else if (((countChar[0] >> 0x3) & 0b11111) == 0b11110){
         byteSize = 4;
     }
 
@@ -588,33 +642,33 @@ int findMe(char *findChar, char *string){
     for (int i = 0; string[i] != '\0'; i++){
         // if the current letter is a 1 byte letter and so is the one we are looking for, check it
         if (((string[i] & 0x80) == 0) && byteSize == 1){
-            if (string[i] == findChar[0]){
-                return 1;
+            if (string[i] == countChar[0]){
+                keepTrack+=1;
             }
         }
             // 2 bytes 110xxxxx	10xxxxxx
             // if the current letter is a 2 bytes letter and so is the one we are looking for, check it
         else if (((string[i] & 0xE0) == 0xC0) && byteSize == 2){
-            if ((string[i] == findChar[0]) && (string[i+1] == findChar[1])){
-                return 1;
+            if ((string[i] == countChar[0]) && (string[i+1] == countChar[1])){
+                keepTrack+=1;
             }
         }
 
             // 3 bytes 1110xxxx 10xxxxxx 10xxxxxx
         else if (((string[i] & 0xF0) == 0xE0) && byteSize == 3){
-            if ((string[i] == findChar[0]) && (string[i+1] == findChar[1]) && (string[i+2] == findChar[2])){
-                return 1;
+            if ((string[i] == countChar[0]) && (string[i+1] == countChar[1]) && (string[i+2] == countChar[2])){
+                keepTrack+=1;
             }
         }
             // 4 bytes 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx
         else if (((string[i] & 0xF8) == 0xF0) && byteSize == 4){
-            if ((string[i] == findChar[0]) && (string[i+1] == findChar[1]) && (string[i+2] == findChar[2]) && (string[i+3] == findChar[3])){
-                return 1;
+            if ((string[i] == countChar[0]) && (string[i+1] == countChar[1]) && (string[i+2] == countChar[2]) && (string[i+3] == countChar[3])){
+                keepTrack+=1;
             }
         }
     }
     // Not found
-    return -1;
+    return keepTrack;
 }
 
 
@@ -654,17 +708,35 @@ void my_utf8_strlenTestAll() {
 
 // ---------------------------------------------------------------------
 // Charat
-int my_utf8_charatTest(char *string, int index, char expected){
-    char actual = *my_utf8_charat(string, index);
+int my_utf8_charatTest(char *string, int index, char *expected){
+    char *actual = my_utf8_charat(string, index);
     printf("%s\n", string);
-    printf("%s:, expected=%s, actual=%s\n",
-           ((unsigned char) expected == actual ? "PASSED" : "FAILED"),
-           expected, actual);
+    printf("%s", "Index: ");
+    printf("%d\n", index);
+    if (actual != NULL){
+        printf("%s:, expected=%s, actual=%s\n",
+               (*expected == *actual ? "PASSED" : "FAILED"),
+               expected, actual);
+    }
+    else {
+        if (expected == NULL){
+            printf("PASSED");
+        }
+        else{
+            printf("FAILED");
+        }
+
+    }
+
     return 0;
 }
 
 void my_utf8_charatTestAll() {
-    my_utf8_charatTest("\u00A3", 0, "£");
+    my_utf8_charatTest("£", 0, "£");
+    my_utf8_charatTest("4🌍AF£", 2, "A");
+    my_utf8_charatTest("😊🧐😎🥳😂🥹", 5, "🥹");
+    my_utf8_charatTest("אר", 6, NULL);
+
 }
 
 // ---------------------------------------------------------------------
@@ -703,7 +775,7 @@ void my_utf8_byteCounterTestAll() {
     my_utf8_byteCounterTest("A", "\u20AC", 2);
 }
 
-// Byte Counter
+// Find Me
 void my_utf8_findMeTest(char *findChar, char *string, int expected){
     int actual = findMe(findChar, string);
     printf("%s\n", findChar);
@@ -736,29 +808,30 @@ void my_utf8_spaceItOutTestAll() {
     my_utf8_spaceItOutTest("㗂越呐㗂越呐㗂越呐", "㗂 越 呐 㗂 越 呐 㗂 越 呐 ");
 }
 
+// Count Char
+void my_utf8_countItTest(char *countChar, char *string, int expected){
+    int actual = countIt(countChar, string);
+    printf("%s\n", countChar);
+    printf("%s\n", string);
+    printf("%s:, expected=%d, actual=%d\n",
+           (expected == actual ? "PASSED" : "FAILED"),
+           expected, actual);
+}
+
+void my_utf8_countItTestAll() {
+    my_utf8_countItTest("א", "אאאריהא", 4);
+    my_utf8_countItTest("🌍", "Hello", 0);
+    my_utf8_countItTest("\u00A3", "\u00A3", 1);
+    my_utf8_countItTest("❤️", "❤️❤️💛❤️❤️💛❤️❤️", 6);
+}
+
 void main(){
-    // my_utf8_checkTestAll();
-    // my_utf8_strlenTestAll();
-    // my_utf8_charatTestAll(); //issues
-    // my_utf8_strcmpTestAll();
-    // my_utf8_byteCounterTestAll();
-    // my_utf8_findMeTestAll();
+    my_utf8_checkTestAll();
+    my_utf8_strlenTestAll();
+    my_utf8_charatTestAll();
+    my_utf8_strcmpTestAll();
+    my_utf8_byteCounterTestAll();
+    my_utf8_findMeTestAll();
     my_utf8_spaceItOutTestAll();
-
-
-//    // Encode
-//    char *input = "\u20AC";
-//    char *output;
-//    my_utf8_encode(input, output);
-//    printf("Input: \n");
-//    printf("%s\n", input);
-//    printf("Output: \n");
-//    printf("%s\n", output);
-
-
-    // -------------------------------------------------
-    // Str Charat - NEED TO FIX
-    // char *stringCharat = "\u05D0\u05E8\u05D9\u05D4";
-    // printf("%X", *my_utf8_charat(stringCharat, 2));
-
+    my_utf8_countItTestAll();
 }
